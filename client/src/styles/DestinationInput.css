@@ -1,0 +1,353 @@
+/* DestinationInput.css - Premium Dark Mode Glassmorphism */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+.destination-input {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+    /* Uses global dark background */
+}
+
+/* Reusing background shapes from Auth */
+.destination-input::before {
+    content: '';
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 60%);
+    top: -20%;
+    left: -10%;
+    z-index: 0;
+    animation: move 15s infinite alternate ease-in-out;
+}
+
+.destination-input::after {
+    content: '';
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 60%);
+    bottom: -10%;
+    right: -10%;
+    z-index: 0;
+    animation: move 20s infinite alternate-reverse ease-in-out;
+}
+
+@keyframes move {
+    from {
+        transform: translate(0, 0);
+    }
+
+    to {
+        transform: translate(100px, 50px);
+    }
+}
+
+.destination-container {
+    background: var(--bg-panel);
+    backdrop-filter: var(--backdrop-blur);
+    -webkit-backdrop-filter: var(--backdrop-blur);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    padding: 2.5rem;
+    box-shadow: var(--shadow-lg);
+    width: 100%;
+    max-width: 500px;
+    text-align: center;
+    position: relative;
+    z-index: 10;
+    animation: fadeIn var(--transition-normal) forwards;
+}
+
+.header {
+    margin-bottom: 2rem;
+}
+
+.logo {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1.2rem;
+}
+
+.logo-icon {
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 2rem;
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+}
+
+.header h1 {
+    color: var(--text-primary);
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(to right, #fff, #94a3b8);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.header p {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+.form-card {
+    margin-bottom: 2rem;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.input-field {
+    text-align: left;
+    position: relative;
+}
+
+.input-field label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.input-wrapper {
+    display: flex;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 0.85rem 1rem;
+    transition: all var(--transition-fast);
+}
+
+.input-wrapper:hover {
+    background: rgba(0, 0, 0, 0.3);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.input-wrapper:focus-within {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    background: rgba(0, 0, 0, 0.4);
+}
+
+.input-icon {
+    margin-right: 0.75rem;
+    color: var(--text-muted);
+    transition: color var(--transition-fast);
+}
+
+.input-wrapper:focus-within .input-icon {
+    color: var(--primary-color);
+}
+
+.input-field input {
+    border: none;
+    outline: none;
+    flex: 1;
+    background: transparent;
+    font-size: 1rem;
+    color: var(--text-primary);
+    font-family: inherit;
+}
+
+.input-field input::placeholder {
+    color: var(--text-muted);
+}
+
+/* Suggestions Dropdown */
+.suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--bg-dark);
+    border: 1px solid var(--border-color);
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 20;
+    margin-top: 5px;
+    box-shadow: var(--shadow-lg);
+}
+
+.suggestion-item {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    transition: background var(--transition-fast);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.suggestion-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Transport Mode Grid */
+.transport-card h3 {
+    text-align: left;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+}
+
+.transport-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.transport-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.85rem 0.5rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    color: var(--text-secondary);
+}
+
+.transport-button:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-2px);
+}
+
+.transport-button.transport-car {
+    border-color: #3b82f6;
+    color: #3b82f6;
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.transport-button.transport-bus {
+    border-color: #10b981;
+    color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.transport-button.transport-train {
+    border-color: #f43f5e;
+    color: #f43f5e;
+    background: rgba(244, 63, 94, 0.1);
+}
+
+.transport-button.transport-walk {
+    border-color: #f59e0b;
+    color: #f59e0b;
+    background: rgba(245, 158, 11, 0.1);
+}
+
+.transport-button.transport-bike {
+    border-color: #8b5cf6;
+    color: #8b5cf6;
+    background: rgba(139, 92, 246, 0.1);
+}
+
+/* Safety Toggle */
+.safety-toggle {
+    margin-bottom: 1.5rem;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: var(--radius-md);
+    color: #fca5a5;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.safety-toggle:hover {
+    background: rgba(239, 68, 68, 0.15);
+}
+
+.safety-toggle label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    width: 100%;
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.safety-toggle input {
+    accent-color: #ef4444;
+    width: 16px;
+    height: 16px;
+}
+
+.generate-button {
+    width: 100%;
+    padding: 1rem;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+    color: white;
+    font-weight: 600;
+    font-size: 1.1rem;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+.generate-button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+}
+
+.generate-button:disabled {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-muted);
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.profile-button {
+    position: fixed;
+    top: 24px;
+    right: 32px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    border-radius: 50%;
+    padding: 0.5rem;
+    cursor: pointer;
+    z-index: 1000;
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile-button:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.1);
+}
