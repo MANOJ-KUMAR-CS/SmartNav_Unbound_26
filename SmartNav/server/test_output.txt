@@ -1,0 +1,33 @@
+USER:
+[
+  {
+    "userId": "USR1770026627864",
+    "name": "MANOJKUMAR CS",
+    "dob": "2026-02-03T18:30:00.000Z",
+    "bloodGroup": "AB-",
+    "mobile": "8124745559",
+    "email": "manojkumar.ec23@bitsathy.ac.in",
+    "password": "$2b$10$6JHP8nZrm43VM4yos/mGp.O.BhZw1CIU4xAqsUvKL0RnScW1vZq5a",
+    "address": "manojkumar.ec23@bitsathy.ac.in",
+    "emergency_contact": "8124745559",
+    "gender": "Male",
+    "role": "police"
+  }
+]
+LOCATIONS:
+[
+  {
+    "id": 32,
+    "userId": "USR1770026627864",
+    "latitude": "13.08270000",
+    "longitude": "80.27070000",
+    "recorded_at": "2026-03-11T08:20:28.000Z"
+  },
+  {
+    "id": 33,
+    "userId": "USR1770026627864",
+    "latitude": "13.08500000",
+    "longitude": "80.27500000",
+    "recorded_at": "2026-03-11T08:20:28.000Z"
+  }
+]
