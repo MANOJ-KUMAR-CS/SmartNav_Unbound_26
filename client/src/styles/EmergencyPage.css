@@ -1,0 +1,321 @@
+/* EmergencyPage.css - Premium Dark/Alert Theme */
+.emergency-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+    min-height: 100vh;
+    font-family: 'Outfit', sans-serif;
+    transition: background-color 0.8s ease-in-out;
+    position: relative;
+    overflow: hidden;
+    color: var(--text-primary);
+}
+
+.emergency-page.alert-mode {
+    background-color: #450a0a;
+    /* Deep dark red */
+}
+
+.emergency-page.notified {
+    background-color: #064e3b;
+    /* Deep dark green */
+}
+
+/* Background pulse effect for alert mode */
+.emergency-page.alert-mode .pulse-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60vh;
+    height: 60vh;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(239, 68, 68, 0.4) 0%, transparent 70%);
+    animation: alertPulse 2s infinite alternate;
+    z-index: 0;
+    pointer-events: none;
+}
+
+@keyframes alertPulse {
+    0% {
+        transform: translate(-50%, -50%) scale(0.9);
+        opacity: 0.5;
+    }
+
+    100% {
+        transform: translate(-50%, -50%) scale(1.2);
+        opacity: 1;
+    }
+}
+
+.emergency-container {
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 600px;
+    position: relative;
+    z-index: 10;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.emergency-page.alert-mode .emergency-container {
+    border-color: rgba(239, 68, 68, 0.3);
+    box-shadow: 0 0 40px rgba(239, 68, 68, 0.2);
+}
+
+.emergency-page.notified .emergency-container {
+    border-color: rgba(52, 211, 153, 0.3);
+    box-shadow: 0 0 40px rgba(52, 211, 153, 0.1);
+}
+
+.emergency-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.emergency-icon-container {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    background: rgba(239, 68, 68, 0.15);
+    color: #fca5a5;
+    margin-bottom: 1.5rem;
+    border: 2px solid rgba(239, 68, 68, 0.3);
+}
+
+.pulse-anim {
+    animation: iconPulse 1s infinite alternate;
+}
+
+@keyframes iconPulse {
+    0% {
+        transform: scale(0.9);
+        filter: drop-shadow(0 0 5px rgba(239, 68, 68, 0.5));
+    }
+
+    100% {
+        transform: scale(1.1);
+        filter: drop-shadow(0 0 15px rgba(239, 68, 68, 0.8));
+    }
+}
+
+.emergency-header h1 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #fecaca;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
+}
+
+.emergency-page.notified .emergency-header h1 {
+    color: #a7f3d0;
+}
+
+.emergency-header p {
+    font-size: 1.05rem;
+    color: var(--text-secondary);
+}
+
+.timer-card {
+    background: rgba(239, 68, 68, 0.05);
+    padding: 1.5rem;
+    border-radius: var(--radius-lg);
+    text-align: center;
+    margin-bottom: 2rem;
+    border: 1px solid rgba(239, 68, 68, 0.15);
+}
+
+.timer-card h2 {
+    font-size: 1.1rem;
+    color: #fca5a5;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+}
+
+.current-time {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.current-time span {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.timer-display {
+    font-size: 4rem;
+    font-weight: 700;
+    color: #ef4444;
+    font-variant-numeric: tabular-nums;
+    margin: 0.5rem 0;
+    line-height: 1;
+}
+
+.text-glow {
+    text-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
+}
+
+.timer-desc {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    max-width: 80%;
+    margin: 0 auto;
+}
+
+.notification-status {
+    background: rgba(52, 211, 153, 0.1);
+    padding: 2rem;
+    border-radius: var(--radius-lg);
+    text-align: center;
+    border: 1px solid rgba(52, 211, 153, 0.2);
+    margin-bottom: 2rem;
+    animation: fadeIn 0.5s ease;
+}
+
+.status-icon {
+    color: #34d399;
+    margin-bottom: 1rem;
+    display: inline-block;
+    filter: drop-shadow(0 0 10px rgba(52, 211, 153, 0.4));
+}
+
+.notification-status h3 {
+    color: #6ee7b7;
+    font-size: 1.4rem;
+    margin-bottom: 0.5rem;
+}
+
+.notification-status p {
+    color: var(--text-secondary);
+}
+
+.emergency-actions {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.emergency-actions button {
+    flex: 1;
+    padding: 1.25rem;
+    font-size: 1.05rem;
+    display: flex;
+    justify-content: center;
+}
+
+.false-alarm-button {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.alert-family-button {
+    background: linear-gradient(135deg, #dc2626, #991b1b) !important;
+    box-shadow: 0 4px 15px rgba(220, 38, 38, 0.4) !important;
+}
+
+.text-glow-hover:hover {
+    box-shadow: 0 0 25px rgba(239, 68, 68, 0.6) !important;
+}
+
+.btn-secondary.disabled {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-muted);
+    border-color: transparent;
+}
+
+.emergency-info {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 1.5rem;
+}
+
+.emergency-info h3 {
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.info-item {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 0.85rem;
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.info-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.info-val {
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.capitalize {
+    text-transform: capitalize;
+}
+
+/* Glass profile button */
+.profile-button.glass-btn {
+    position: fixed;
+    top: 24px;
+    right: 32px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-secondary);
+    padding: 0.6rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.profile-button.glass-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    transform: scale(1.1);
+}
+
+@media (max-width: 640px) {
+    .emergency-actions {
+        flex-direction: column;
+    }
+
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .timer-display {
+        font-size: 3.5rem;
+    }
+}
