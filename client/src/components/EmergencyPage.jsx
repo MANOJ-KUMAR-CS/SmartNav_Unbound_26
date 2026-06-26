@@ -1,13 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { AlertTriangle, Phone, Shield, UserCircle, CheckCircle } from 'lucide-react';
+import { AlertCircle, ShieldOff, PhoneForwarded, Shield, Clock, MapPin, Activity } from 'lucide-react';
 import SOSButton from './SOSButton';
 import { useNavigate } from 'react-router-dom';
 import '../styles/EmergencyPage.css';
 
 const EmergencyPage = ({ route }) => {
-    const [timer, setTimer] = useState(15 * 60); // 15 minutes in seconds
+    const [timer, setTimer] = useState(15 * 60);
     const [familyNotified, setFamilyNotified] = useState(false);
     const [pageOpenedAt] = useState(new Date());
+
+    // Always read from localStorage at mount — ensures data survives page navigation
+    const savedRoute = JSON.parse(localStorage.getItem('currentRoute') || '{}');
+    const fromLoc = route?.fromLocation || savedRoute?.fromLocation || 'Unknown Origin';
+    const toLoc = route?.toLocation || savedRoute?.toLocation || 'Unknown Destination';
 
     const navigate = useNavigate();
 
@@ -22,20 +27,13 @@ const EmergencyPage = ({ route }) => {
                     return prevTimer - 1;
                 });
             }, 1000);
-
             return () => clearInterval(interval);
         }
     }, [familyNotified, timer]);
 
+
     const formatClockTime = (date) => {
-        let hours = date.getHours();
-        let minutes = date.getMinutes();
-        let ampm = hours >= 12 ? "PM" : "AM";
-
-        hours = hours % 12 || 12;
-        minutes = minutes < 10 ? "0" + minutes : minutes;
-
-        return `${hours}:${minutes} ${ampm}`;
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     };
 
     const formatCountdown = (seconds) => {
@@ -45,112 +43,118 @@ const EmergencyPage = ({ route }) => {
     };
 
     const handleFalseAlarm = () => {
-        if (window.confirm('Are you sure this is a false alarm?')) {
-            navigate('/map');
+        if (window.confirm('CONRFIRM: DEACTIVATE EMERGENCY PROTOCOL?')) {
+            navigate('/destination');
         }
     };
 
-    const handleNotifyFamily = async() => {
+    const handleNotifyFamily = async () => {
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+
         try {
-            await fetch("https://n8n-1-szop.onrender.com/webhook/alert_sos", {
+            // n8n webhook with required fields
+            // n8n webhook is now handled by the server SOS activation endpoint
+            // removing redundant client-side call to avoid CORS issues
+
+            // Server SOS
+            await fetch("http://localhost:5000/api/sos/activate", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ userId: "123", status: "lost" })
+                body: JSON.stringify({
+                    userId: user.userId,
+                    name: user.name,
+                    email: user.email,
+                    phone: `+91${(user.emergencyContact || user.emergency_contact || '').replace(/\D/g, '')}`,
+                    status: "PERSON_MISSED"
+                })
             });
-        } catch(e) { console.error(e) }
-        setFamilyNotified(true);
-        setTimer(0);
-    };
 
-    const handleProfileClick = () => {
-        navigate('/profile');
+            setFamilyNotified(true);
+            setTimer(0);
+        } catch (e) {
+            console.error(e);
+        }
     };
 
     return (
-        <div className={`emergency-page ${familyNotified ? "notified" : "alert-mode"}`}>
-            <div className="pulse-overlay"></div>
-            
-            <button className="profile-button glass-btn" onClick={handleProfileClick}>
-                <UserCircle size={28} />
-            </button>
+        <div className={`emergency-protocol-page technical-grid ${familyNotified ? "level-critical" : "level-warning"}`}>
+            <header className="protocol-header glass-panel">
+                <div className="protocol-title">
+                    <AlertCircle className="pulse-danger" size={24} />
+                    <div className="title-text">
+                        <h1>EMERGENCY ALERT</h1>
+                        <span>CONNECTION LOST // STATUS: {familyNotified ? "CRITICAL" : "ELEVATED"}</span>
+                    </div>
+                </div>
+                <SOSButton />
+            </header>
 
-            <SOSButton />
-
-            <div className="glass-panel emergency-container">
-                <div className="emergency-content">
-                    <div className="emergency-header">
-                        <div className="emergency-icon-container">
-                            <AlertTriangle size={56} className="emergency-icon pulse-anim" />
+            <main className="protocol-main">
+                <section className="protocol-grid">
+                    <div className="status-panel glass-panel">
+                        <div className="panel-label"><Activity size={14} /> Automatic Alert Sequence</div>
+                        <div className="countdown-timer">
+                            <span className="label">ESTIMATED TIMER</span>
+                            <div className="time-val">{formatCountdown(timer)}</div>
                         </div>
-                        <h1>Connection Lost</h1>
-                        <p>We've detected you may need assistance</p>
+                        <div className="progress-bar">
+                            <div className="progress-fill" style={{ width: `${(timer / (15 * 60)) * 100}%` }}></div>
+                        </div>
+                        <p className="panel-note">Emergency contacts will be automatically mobilized upon counter-zero.</p>
                     </div>
 
-                    {!familyNotified ? (
-                        <div className="timer-card">
-                            <h2>Emergency Timer</h2>
-                            <div className="current-time">
-                                Status tracking since: <span>{formatClockTime(pageOpenedAt)}</span>
+                    <div className="intel-panel glass-panel">
+                        <div className="panel-label"><MapPin size={14} /> Location Intelligence</div>
+                        <div className="intel-data">
+                            <div className="data-item">
+                                <label>ORIGIN</label>
+                                <span>{fromLoc}</span>
                             </div>
-                            <div className="timer-display text-glow">{formatCountdown(timer)}</div>
-                            <p className="timer-desc">Emergency contacts will be automatically notified when timer reaches 00:00</p>
+                            <div className="data-item">
+                                <label>DESTINATION</label>
+                                <span>{toLoc}</span>
+                            </div>
+                            <div className="data-item">
+                                <label>LOSS TIMESTAMP</label>
+                                <span>{formatClockTime(pageOpenedAt)}</span>
+                            </div>
                         </div>
-                    ) : (
-                        <div className="notification-status">
-                            <div className="status-icon"><CheckCircle size={48} /></div>
-                            <h3>Family Notified</h3>
-                            <p>Your emergency contacts have been sent your location and status.</p>
+                    </div>
+
+                    {familyNotified && (
+                        <div className="notification-alert glass-panel success-fade">
+                            <div className="alert-content">
+                                <PhoneForwarded size={32} className="success-text" />
+                                <div className="text">
+                                    <h3>Contacts Mobilized</h3>
+                                    <p>Emergency response personnel and designated family members have received your live telemetry.</p>
+                                </div>
+                            </div>
                         </div>
                     )}
 
-                    <div className="emergency-actions">
-                        <button
-                            onClick={handleFalseAlarm}
-                            className="btn-secondary false-alarm-button"
-                        >
-                            <Shield size={22} />
-                            <span>False Alarm</span>
+                    <div className="action-panel">
+                        <button onClick={handleFalseAlarm} className="abort-protocol-btn">
+                            <ShieldOff size={20} />
+                            <span>DEACTIVATE PROTOCOL</span>
                         </button>
 
-                        {!familyNotified ? (
-                            <button
-                                onClick={handleNotifyFamily}
-                                className="btn-danger alert-family-button text-glow-hover"
-                            >
-                                <Phone size={22} />
-                                <span>Notify Family</span>
-                            </button>
-                        ) : (
-                            <button disabled className="btn-secondary disabled">
-                                <Phone size={22} />
-                                <span>Notified Family</span>
-                            </button>
-                        )}
+                        <button
+                            onClick={handleNotifyFamily}
+                            disabled={familyNotified}
+                            className={`mobilize-btn ${familyNotified ? 'active' : ''}`}
+                        >
+                            <Shield size={20} />
+                            <span>{familyNotified ? 'RESPONSE TEAM DISPATCHED' : 'IMMEDIATE MOBILIZATION'}</span>
+                        </button>
                     </div>
+                </section>
 
-                    <div className="emergency-info">
-                        <h3>Emergency Details</h3>
-                        <div className="info-grid">
-                            <div className="info-item">
-                                <span className="info-label">From</span>
-                                <span className="info-val truncate">{route?.from?.address || 'Location unavailable'}</span>
-                            </div>
-                            <div className="info-item">
-                                <span className="info-label">To</span>
-                                <span className="info-val truncate">{route?.to?.address || 'Destination unavailable'}</span>
-                            </div>
-                            <div className="info-item">
-                                <span className="info-label">Last Known</span>
-                                <span className="info-val truncate">{route?.from?.address || 'Location unavailable'}</span>
-                            </div>
-                            <div className="info-item">
-                                <span className="info-label">Mode</span>
-                                <span className="info-val capitalize">{route?.transportMode || 'Unknown'}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                <footer className="protocol-footer">
+                    <Clock size={12} />
+                    <span>SECURE LINK // {formatClockTime(new Date())}</span>
+                </footer>
+            </main>
         </div>
     );
 };

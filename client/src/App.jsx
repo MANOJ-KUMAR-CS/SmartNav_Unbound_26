@@ -16,26 +16,40 @@ import LoginPage from "./components/Login";
 import PoliceDashboard from "./components/PoliceDashboard";
 import PoliceMapView from "./components/PoliceMapView";
 import PoliceLocationHistory from "./components/PoliceLocationHistory";
+import Home from "./components/Home";
+import PoliceMonitoring from "./components/PoliceMonitoring";
+import RestrictedLogs from "./components/RestrictedLogs";
 import "./styles/App.css";
 
 function App() {
   const [route, setRoute] = useState(null); // Stores generated route
   const [connectionLost, setConnectionLost] = useState(false); // Connection lost state
-  const [user, setUser] = useState(null); // Logged-in user
+  const [user, setUser] = useState(() => {
+    const storedUser = localStorage.getItem("user");
+    try {
+      return storedUser ? JSON.parse(storedUser) : null;
+    } catch (e) {
+      return null;
+    }
+  }); // Logged-in user
   const [selectedUser, setSelectedUser] = useState(null); // Selected by police
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+    if (storedUser && !user) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (e) {
+        localStorage.removeItem("user");
+      }
     }
-  }, []);
+  }, [user]);
 
   return (
     <Router>
       <Routes>
-        {/* Default route → login */}
-        <Route path="/" element={<Navigate to="/login" />} />
+        {/* Default route → Home */}
+        <Route path="/" element={<Home />} />
 
         {/* Login */}
         <Route
@@ -116,7 +130,31 @@ function App() {
           }
         />
 
-        {/* Destination Input (normal users only) */}
+        {/* ✅ Police CIA Monitoring Dashboard */}
+        <Route
+          path="/police/monitoring"
+          element={
+            user?.role === "police" ? (
+              <PoliceMonitoring />
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+
+        {/* ✅ Police Restricted Logs */}
+        <Route
+          path="/police/restricted-logs"
+          element={
+            user?.role === "police" ? (
+              <RestrictedLogs />
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+
+        {/* Destination Input */}
         <Route
           path="/destination"
           element={
@@ -130,15 +168,19 @@ function App() {
           }
         />
 
-        {/* MapView for normal users or police */}
+        {/* MapView */}
         <Route
           path="/map"
           element={
-            <MapViewWrapper
-              route={route}
-              userId={user?.userId || selectedUser?.userId}
-              setConnectionLost={setConnectionLost}
-            />
+            user ? (
+              <MapViewWrapper
+                route={route}
+                userId={user?.userId || selectedUser?.userId}
+                setConnectionLost={setConnectionLost}
+              />
+            ) : (
+              <Navigate to="/login" />
+            )
           }
         />
 
@@ -146,10 +188,14 @@ function App() {
         <Route
           path="/emergency"
           element={
-            <EmergencyPageWrapper
-              route={route}
-              setConnectionLost={setConnectionLost}
-            />
+            user ? (
+              <EmergencyPageWrapper
+                route={route}
+                setConnectionLost={setConnectionLost}
+              />
+            ) : (
+              <Navigate to="/login" />
+            )
           }
         />
 

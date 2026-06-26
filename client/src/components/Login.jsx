@@ -1,7 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { User, Lock, Mail, ArrowRight } from "lucide-react";
-import "../styles/Auth.css";
+import { User, Lock, Mail, ArrowRight, Shield, Map as MapIcon, Loader2 } from "lucide-react";
+import { signInWithGoogle } from "../config/firebase";
+import { auth } from "../config/firebase";
+import { getRedirectResult } from "firebase/auth";
+import "../styles/Login.css";
 
 const Login = ({ onLogin }) => {
     const [loginData, setLoginData] = useState({
@@ -13,6 +16,29 @@ const Login = ({ onLogin }) => {
     const [isLoading, setIsLoading] = useState(false);
 
     const navigate = useNavigate();
+
+    // Handle redirect result (fallback for popup-blocked browsers)
+    useEffect(() => {
+        getRedirectResult(auth)
+            .then((result) => {
+                if (result && result.user) {
+                    const user = result.user;
+                    const userData = {
+                        userId: user.uid,
+                        name: user.displayName,
+                        email: user.email,
+                        mobile: user.phoneNumber || "",
+                        role: "user",
+                    };
+                    localStorage.setItem("user", JSON.stringify(userData));
+                    if (onLogin) onLogin(userData);
+                    navigate("/destination");
+                }
+            })
+            .catch((error) => {
+                console.error("Redirect sign-in error:", error);
+            });
+    }, []);
 
     const handleChange = (e) => {
         setLoginData({ ...loginData, [e.target.name]: e.target.value });
@@ -56,7 +82,7 @@ const Login = ({ onLogin }) => {
                     dateOfBirth: data.user.dateOfBirth,
                     role: data.user.role,
                 };
-                
+
                 if (onLogin) onLogin(userData);
 
                 if (data.user.role === "police") {
@@ -73,6 +99,46 @@ const Login = ({ onLogin }) => {
         }
     };
 
+    const handleGoogleLogin = async () => {
+        setIsLoading(true);
+        try {
+            const user = await signInWithGoogle();
+            console.log("✅ Logged in with Google:", user.displayName);
+
+            const userData = {
+                userId: user.uid,
+                name: user.displayName,
+                email: user.email,
+                mobile: user.phoneNumber || "",
+                role: "user",
+            };
+
+            localStorage.setItem("user", JSON.stringify(userData));
+            if (onLogin) onLogin(userData);
+            navigate("/destination");
+        } catch (error) {
+            // User simply closed the popup — not a real error, ignore silently
+            if (error.code === "auth/popup-closed-by-user" || error.code === "auth/cancelled-popup-request") {
+                console.log("ℹ️ Google Sign-In popup was closed by the user.");
+                return;
+            }
+            // Popup was blocked by browser
+            if (error.code === "auth/popup-blocked") {
+                alert("⚠️ Popup was blocked by your browser.\n\nPlease allow popups for this site in your browser settings and try again.");
+                return;
+            }
+            // Google Sign-In not enabled in Firebase Console
+            if (error.code === "auth/operation-not-allowed") {
+                alert("Google Sign-In is not enabled. Please enable it in the Firebase Console under Authentication → Sign-in method.");
+                return;
+            }
+            console.error("Google login failed:", error);
+            alert(`Google login failed: ${error.message}`);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const handleForgotPassword = (e) => {
         e.preventDefault();
         alert(`Password reset instructions sent to ${resetEmail}`);
@@ -81,125 +147,134 @@ const Login = ({ onLogin }) => {
     };
 
     return (
-        <div className="auth-container">
-            {/* Background elements for modern look */}
-            <div className="bg-shape shape-1"></div>
-            <div className="bg-shape shape-2"></div>
-            <div className="bg-shape shape-3"></div>
-
-            <div className="glass-panel auth-card animate-fade-in">
-                {!showForgotPassword ? (
-                    <>
-                        <div className="auth-header">
-                            <h2>Welcome Back</h2>
-                            <p>Sign in to continue to SmartNav</p>
+        <div className="login-container technical-grid">
+            <div className="login-visual-side">
+                <div className="visual-content">
+                    <div className="logo-section">
+                        <div className="logo-icon-wrapper">
+                            <MapIcon className="logo-icon" />
                         </div>
+                        <h1>SmartNav AI</h1>
+                    </div>
+                    <p className="visual-tagline">Advanced Geospatial Safety & Navigation Intelligence</p>
+                </div>
+            </div>
 
-                        <form onSubmit={handleSubmit} className="auth-form">
-                            <div className="form-group">
-                                <div className="input-icon-wrapper">
-                                    <User className="input-icon" size={20} />
-                                    <input
-                                        type="text"
-                                        name="emailOrPhone"
-                                        className="input-field"
-                                        placeholder="Email or Phone Number"
-                                        value={loginData.emailOrPhone}
-                                        onChange={handleChange}
-                                        required
-                                    />
-                                </div>
+            <div className="login-form-side">
+                <div className="login-form-wrapper glass-panel">
+                    {!showForgotPassword ? (
+                        <>
+                            <div className="login-header">
+                                <h2>Welcome Back</h2>
+                                <p>Authenticate to access the intelligence platform</p>
                             </div>
 
-                            <div className="form-group">
-                                <div className="input-icon-wrapper">
-                                    <Lock className="input-icon" size={20} />
-                                    <input
-                                        type="password"
-                                        name="password"
-                                        className="input-field"
-                                        placeholder="Password"
-                                        value={loginData.password}
-                                        onChange={handleChange}
-                                        required
-                                    />
+                            <form onSubmit={handleSubmit} className="actual-form">
+                                <div className="form-group">
+                                    <label>Identity</label>
+                                    <div className="input-wrapper">
+                                        <User className="input-icon" size={18} />
+                                        <input
+                                            type="text"
+                                            name="emailOrPhone"
+                                            placeholder="Email or phone number"
+                                            value={loginData.emailOrPhone}
+                                            onChange={handleChange}
+                                            required
+                                        />
+                                    </div>
                                 </div>
+
+                                <div className="form-group">
+                                    <div className="label-row">
+                                        <label>Secret</label>
+                                        <span
+                                            className="forgot-password-link"
+                                            onClick={() => setShowForgotPassword(true)}
+                                        >
+                                            Forgot?
+                                        </span>
+                                    </div>
+                                    <div className="input-wrapper">
+                                        <Lock className="input-icon" size={18} />
+                                        <input
+                                            type="password"
+                                            name="password"
+                                            placeholder="••••••••"
+                                            value={loginData.password}
+                                            onChange={handleChange}
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+                                <button type="submit" className="login-btn" disabled={isLoading}>
+                                    {isLoading ? (
+                                        <Loader2 className="spinner" size={20} />
+                                    ) : (
+                                        <>
+                                            <span>Sign In</span>
+                                            <ArrowRight size={18} />
+                                        </>
+                                    )}
+                                </button>
+                            </form>
+
+                            <div className="divider">
+                                <span>or continue with</span>
                             </div>
 
-                            <button type="submit" className="btn-primary auth-btn" disabled={isLoading}>
-                                {isLoading ? (
-                                    <div className="loading-spinner-small"></div>
-                                ) : (
-                                    <>
-                                        Sign In <ArrowRight size={18} />
-                                    </>
-                                )}
+                            <button type="button" className="google-login-btn" onClick={handleGoogleLogin} disabled={isLoading}>
+                                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" />
+                                <span>Sign in with Google</span>
                             </button>
-                        </form>
 
-                        <div className="auth-links">
+                            <p className="register-text">
+                                New to the platform?{" "}
+                                <button
+                                    className="text-link"
+                                    onClick={() => navigate("/register")}
+                                >
+                                    Create account
+                                </button>
+                            </p>
+                        </>
+                    ) : (
+                        <>
+                            <div className="login-header">
+                                <h2>Reset Access</h2>
+                                <p>System credentials recovery</p>
+                            </div>
+
+                            <form onSubmit={handleForgotPassword} className="actual-form">
+                                <div className="form-group">
+                                    <label>Registered Email</label>
+                                    <div className="input-wrapper">
+                                        <Mail className="input-icon" size={18} />
+                                        <input
+                                            type="email"
+                                            placeholder="name@example.com"
+                                            value={resetEmail}
+                                            onChange={(e) => setResetEmail(e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+                                <button type="submit" className="login-btn">
+                                    Send Recovery Email
+                                </button>
+                            </form>
+
                             <button
-                                type="button"
-                                className="text-btn forgot-btn"
-                                onClick={() => setShowForgotPassword(true)}
-                            >
-                                Forgot Password?
-                            </button>
-                        </div>
-
-                        <div className="auth-divider">
-                            <span>or</span>
-                        </div>
-
-                        <p className="register-prompt">
-                            Don&apos;t have an account?{" "}
-                            <span 
-                                className="register-link"
-                                onClick={() => navigate("/register")}
-                            >
-                                Create one now
-                            </span>
-                        </p>
-                    </>
-                ) : (
-                    <>
-                        <div className="auth-header">
-                            <h2>Reset Password</h2>
-                            <p>We'll send you recovery instructions</p>
-                        </div>
-
-                        <form onSubmit={handleForgotPassword} className="auth-form">
-                            <div className="form-group">
-                                <div className="input-icon-wrapper">
-                                    <Mail className="input-icon" size={20} />
-                                    <input
-                                        type="email"
-                                        name="resetEmail"
-                                        className="input-field"
-                                        placeholder="Email Address"
-                                        value={resetEmail}
-                                        onChange={(e) => setResetEmail(e.target.value)}
-                                        required
-                                    />
-                                </div>
-                            </div>
-
-                            <button type="submit" className="btn-primary auth-btn">
-                                Send Reset Link <ArrowRight size={18} />
-                            </button>
-                        </form>
-
-                        <div className="auth-links center">
-                            <button
-                                type="button"
-                                className="text-btn"
+                                className="back-btn"
                                 onClick={() => setShowForgotPassword(false)}
                             >
-                                Back to Log In
+                                Back to login
                             </button>
-                        </div>
-                    </>
-                )}
+                        </>
+                    )}
+                </div>
             </div>
         </div>
     );

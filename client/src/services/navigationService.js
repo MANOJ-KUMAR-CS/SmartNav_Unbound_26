@@ -62,12 +62,8 @@ const geocodeLocation = async (locationName) => {
     console.error("Geocoding error:", error);
   }
 
-  // 🔥 Always return a valid default (Chennai)
-  return {
-    lat: CITY_COORDS.Chennai.lat,
-    lng: CITY_COORDS.Chennai.lng,
-    address: `Unknown location "${locationName}" (defaulted to Chennai)`,
-  };
+  // throw error if location not found
+  throw new Error(`Location "${locationName}" could not be identified.`);
 };
 
 export const generateRoute = async (
@@ -163,18 +159,18 @@ export const generateSafetyRoute = async (
 
 // New function to generate and save safety route
 export const generateAndSaveSafetyRoute = async (fromLocation, toLocation, transportMode) => {
-    try {
-        const url = `http://localhost:5000/generate_and_save_route?from=${encodeURIComponent(fromLocation)}&to=${encodeURIComponent(toLocation)}&mode=${encodeURIComponent(transportMode)}`;
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error('Failed to generate and save safety route');
-        }
-        const filename = await response.text(); // Returns the filename (e.g., "safety_route_123.html")
-        return filename; // Return the filename to use in the iframe src
-    } catch (error) {
-        console.error("Error generating and saving safety route:", error);
-        return null;
+  try {
+    const url = `http://localhost:5000/generate_and_save_route?from=${encodeURIComponent(fromLocation)}&to=${encodeURIComponent(toLocation)}&mode=${encodeURIComponent(transportMode)}`;
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error('Failed to generate and save safety route');
     }
+    const filename = await response.text(); // Returns the filename (e.g., "safety_route_123.html")
+    return filename; // Return the filename to use in the iframe src
+  } catch (error) {
+    console.error("Error generating and saving safety route:", error);
+    return null;
+  }
 };
 
 // [Keep existing generateRoute as is]

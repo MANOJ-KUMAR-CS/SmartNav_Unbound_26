@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, Phone, Calendar, MapPin, Hash, Shield, Droplets, Lock, ArrowRight } from 'lucide-react';
-import '../styles/Auth.css';
+import { User, Mail, Phone, MapPin, Calendar, Activity, Lock, ArrowLeft, Shield, Map as MapIcon, CheckCircle, Loader } from 'lucide-react';
+import { auth, signInWithGoogle } from "../config/firebase";
+import '../styles/Register.css';
 
-const Register = () => {
+const Register = ({ onRegister }) => {
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
@@ -22,38 +23,20 @@ const Register = () => {
     const [isLoading, setIsLoading] = useState(false);
 
     const handleChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value
-        });
+        setFormData({ ...formData, [e.target.name]: e.target.value });
     };
+
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setIsLoading(true);
 
-        // Validate passwords
         if (formData.password !== formData.confirmPassword) {
             alert('Passwords do not match!');
+            setIsLoading(false);
             return;
         }
-
-        if (formData.password.length < 6) {
-            alert('Password must be at least 6 characters long');
-            return;
-        }
-
-        // Validate phone numbers
-        const phoneRegex = /^[0-9]{10}$/;
-        if (!phoneRegex.test(formData.mobile)) {
-            alert('Enter a valid 10-digit phone number');
-            return;
-        }
-        if (!phoneRegex.test(formData.emergency_contact)) {
-            alert('Enter a valid 10-digit emergency contact number');
-            return;
-        }
-
-        setIsLoading(true);
 
         try {
             const response = await fetch('http://localhost:5000/api/user/register', {
@@ -64,7 +47,7 @@ const Register = () => {
 
             const data = await response.json();
             if (response.ok) {
-                alert('Registration successful!');
+                alert('✅ Registration successful! You can now log in.');
                 navigate('/login');
             } else {
                 alert(data.message || 'Registration failed');
@@ -77,117 +60,193 @@ const Register = () => {
         }
     };
 
+    const handleGoogleRegister = async () => {
+        setIsLoading(true);
+        try {
+            const user = await signInWithGoogle();
+            const userData = {
+                userId: user.uid,
+                name: user.displayName,
+                email: user.email,
+                mobile: user.phoneNumber || "",
+                role: "user"
+            };
+            localStorage.setItem("user", JSON.stringify(userData));
+            if (onRegister) onRegister(userData);
+            navigate("/destination");
+        } catch (error) {
+            console.error("Google registration failed:", error);
+            if (error.code === 'auth/popup-blocked') {
+                alert("Sign-in popup was blocked. Please enable popups for this site.");
+            } else if (error.code === 'auth/operation-not-allowed') {
+                alert("Google Sign-In is not enabled in your Firebase Console. Please enable it.");
+            } else {
+                alert(`Google registration failed: ${error.message}`);
+            }
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     return (
-        <div className="auth-container" style={{ padding: '3rem 1rem' }}>
-            {/* Background elements */}
-            <div className="bg-shape shape-1"></div>
-            <div className="bg-shape shape-2"></div>
-            <div className="bg-shape shape-3"></div>
+        <div className="register-container technical-grid">
+            <div className="register-header-bar">
+                <button className="back-link" onClick={() => navigate('/login')}>
+                    <ArrowLeft size={18} />
+                    <span>Return to Login</span>
+                </button>
+            </div>
 
-            <div className="glass-panel auth-card animate-fade-in" style={{ maxWidth: '500px' }}>
-                <div className="auth-header">
-                    <h2>Create Account</h2>
-                    <p>Join SmartNav for smart routing and emergency help</p>
+
+
+            <div className="register-content">
+                <div className="register-card glass-panel">
+                    <div className="card-header">
+                        <div className="brand">
+                            <MapIcon className="brand-icon" />
+                            <h2>Enroll for the SmartNav</h2>
+                        </div>
+                        <p>Create your secure profile for intelligent navigation services</p>
+                    </div>
+
+                    <form onSubmit={handleSubmit} className="register-grid-form">
+                        <div className="form-section">
+                            <h3>Core Identity</h3>
+                            <div className="grid-row">
+                                <div className="form-group">
+                                    <label>Full Name</label>
+                                    <div className="input-wrapper">
+                                        <User className="input-icon" size={16} />
+                                        <input type="text" name="name" placeholder="---" value={formData.name} onChange={handleChange} required />
+                                    </div>
+                                </div>
+                                <div className="form-group">
+                                    <label>Email Address</label>
+                                    <div className="input-wrapper">
+                                        <Mail className="input-icon" size={16} />
+                                        <input type="email" name="email" placeholder="---" value={formData.email} onChange={handleChange} required />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="grid-row">
+                                {/* ─── Mobile ── */}
+                                <div className="form-group">
+                                    <label>Mobile Number</label>
+                                    <div className="input-wrapper">
+                                        <Phone className="input-icon" size={16} />
+                                        <input
+                                            type="tel"
+                                            name="mobile"
+                                            placeholder="10-digit mobile"
+                                            value={formData.mobile}
+                                            onChange={handleChange}
+                                            required
+                                            maxLength={10}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="form-group">
+                                    <label>Emergency Contact</label>
+                                    <div className="input-wrapper">
+                                        <Shield className="input-icon" size={16} />
+                                        <input type="tel" name="emergency_contact" placeholder="Guardian contact" value={formData.emergency_contact} onChange={handleChange} required />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="form-section">
+                            <h3>Vitals &amp; Logistics</h3>
+                            <div className="grid-row">
+                                <div className="form-group">
+                                    <label>Date of Birth</label>
+                                    <div className="input-wrapper">
+                                        <Calendar className="input-icon" size={16} />
+                                        <input type="date" name="dob" value={formData.dob} onChange={handleChange} required />
+                                    </div>
+                                </div>
+                                <div className="form-group">
+                                    <label>Blood Group</label>
+                                    <div className="input-wrapper">
+                                        <Activity className="input-icon" size={16} />
+                                        <select name="bloodGroup" value={formData.bloodGroup} onChange={handleChange} required>
+                                            <option value="">Select Group</option>
+                                            <option value="A+">A+</option>
+                                            <option value="A-">A-</option>
+                                            <option value="B+">B+</option>
+                                            <option value="B-">B-</option>
+                                            <option value="AB+">AB+</option>
+                                            <option value="AB-">AB-</option>
+                                            <option value="O+">O+</option>
+                                            <option value="O-">O-</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="form-group full-width">
+                                <label>Gender</label>
+                                <div className="gender-selector">
+                                    <label className={formData.gender === 'Male' ? 'active' : ''}>
+                                        <input type="radio" name="gender" value="Male" checked={formData.gender === 'Male'} onChange={handleChange} required />
+                                        <span>Male</span>
+                                    </label>
+                                    <label className={formData.gender === 'Female' ? 'active' : ''}>
+                                        <input type="radio" name="gender" value="Female" checked={formData.gender === 'Female'} onChange={handleChange} required />
+                                        <span>Female</span>
+                                    </label>
+                                    <label className={formData.gender === 'Other' ? 'active' : ''}>
+                                        <input type="radio" name="gender" value="Other" checked={formData.gender === 'Other'} onChange={handleChange} required />
+                                        <span>Other</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div className="form-group full-width">
+                                <label>Residential Address</label>
+                                <div className="input-wrapper">
+                                    <MapPin className="input-icon" size={16} />
+                                    <input type="text" name="address" placeholder="Residential location details" value={formData.address} onChange={handleChange} required />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="form-section">
+                            <h3>Security Credentials</h3>
+                            <div className="grid-row">
+                                <div className="form-group">
+                                    <label>Access Password</label>
+                                    <div className="input-wrapper">
+                                        <Lock className="input-icon" size={16} />
+                                        <input type="password" name="password" placeholder="••••••••" value={formData.password} onChange={handleChange} required minLength="6" />
+                                    </div>
+                                </div>
+                                <div className="form-group">
+                                    <label>Verify Password</label>
+                                    <div className="input-wrapper">
+                                        <Lock className="input-icon" size={16} />
+                                        <input type="password" name="confirmPassword" placeholder="••••••••" value={formData.confirmPassword} onChange={handleChange} required />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" className="register-submit-btn" disabled={isLoading}>
+                            {isLoading ? 'Processing...' : 'Complete Registration'}
+                        </button>
+
+                        <div className="divider">
+                            <span>or continue with</span>
+                        </div>
+
+                        <button type="button" className="google-login-btn" onClick={handleGoogleRegister} disabled={isLoading}>
+                            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" />
+                            <span>Sign up with Google</span>
+                        </button>
+                    </form>
                 </div>
-
-                <form onSubmit={handleSubmit} className="auth-form" style={{ gap: '1rem' }}>
-                    <div className="form-group">
-                        <div className="input-icon-wrapper">
-                            <User className="input-icon" size={18} />
-                            <input type="text" name="name" className="input-field" placeholder="Full Name" value={formData.name} onChange={handleChange} required />
-                        </div>
-                    </div>
-                    
-                    <div className="form-group">
-                        <div className="input-icon-wrapper">
-                            <Mail className="input-icon" size={18} />
-                            <input type="email" name="email" className="input-field" placeholder="Email Address" value={formData.email} onChange={handleChange} required />
-                        </div>
-                    </div>
-                    
-                    <div className="form-group flex gap-2" style={{ display: 'flex', gap: '1rem' }}>
-                        <div className="input-icon-wrapper w-1/2" style={{ flex: 1 }}>
-                            <Phone className="input-icon" size={18} />
-                            <input type="tel" name="mobile" className="input-field" placeholder="Phone (10 digits)" value={formData.mobile} onChange={handleChange} required />
-                        </div>
-                        <div className="input-icon-wrapper w-1/2" style={{ flex: 1 }}>
-                            <Shield className="input-icon" size={18} />
-                            <input type="tel" name="emergency_contact" className="input-field" placeholder="Emergency Contact" value={formData.emergency_contact} onChange={handleChange} required />
-                        </div>
-                    </div>
-
-                    <div className="form-group flex gap-2" style={{ display: 'flex', gap: '1rem' }}>
-                        <div className="input-icon-wrapper w-1/2" style={{ flex: 1 }}>
-                            <Calendar className="input-icon" size={18} />
-                            <input type="date" name="dob" className="input-field" value={formData.dob} onChange={handleChange} required style={{ colorScheme: 'dark' }} />
-                        </div>
-                        <div className="input-icon-wrapper w-1/2" style={{ flex: 1 }}>
-                            <Droplets className="input-icon" size={18} />
-                            <select name="bloodGroup" className="input-field" value={formData.bloodGroup} onChange={handleChange} required style={{ backgroundColor: 'rgba(15, 17, 21, 0.5)' }}>
-                                <option value="">Blood Group</option>
-                                <option value="A+">A+</option>
-                                <option value="A-">A-</option>
-                                <option value="B+">B+</option>
-                                <option value="B-">B-</option>
-                                <option value="AB+">AB+</option>
-                                <option value="AB-">AB-</option>
-                                <option value="O+">O+</option>
-                                <option value="O-">O-</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div className="form-group">
-                        <div className="input-icon-wrapper">
-                            <MapPin className="input-icon" size={18} />
-                            <input type="text" name="address" className="input-field" placeholder="Full Address" value={formData.address} onChange={handleChange} required />
-                        </div>
-                    </div>
-                    
-                    <div className="form-group" style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 1rem', background: 'rgba(0,0,0,0.2)', borderRadius: 'var(--radius-md)' }}>
-                        <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Gender</span>
-                        <div style={{ display: 'flex', gap: '1rem', color: 'var(--text-primary)' }}>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', cursor: 'pointer' }}>
-                                <input type="radio" name="gender" value="Male" checked={formData.gender === 'Male'} onChange={handleChange} required /> Male
-                            </label>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', cursor: 'pointer' }}>
-                                <input type="radio" name="gender" value="Female" checked={formData.gender === 'Female'} onChange={handleChange} required /> Female
-                            </label>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', cursor: 'pointer' }}>
-                                <input type="radio" name="gender" value="Other" checked={formData.gender === 'Other'} onChange={handleChange} required /> Other
-                            </label>
-                        </div>
-                    </div>
-
-                    <div className="form-group flex gap-2" style={{ display: 'flex', gap: '1rem' }}>
-                        <div className="input-icon-wrapper w-1/2" style={{ flex: 1 }}>
-                            <Lock className="input-icon" size={18} />
-                            <input type="password" name="password" className="input-field" placeholder="Password" value={formData.password} onChange={handleChange} required minLength="6" />
-                        </div>
-                        <div className="input-icon-wrapper w-1/2" style={{ flex: 1 }}>
-                            <Hash className="input-icon" size={18} />
-                            <input type="password" name="confirmPassword" className="input-field" placeholder="Confirm Password" value={formData.confirmPassword} onChange={handleChange} required />
-                        </div>
-                    </div>
-
-                    <button type="submit" className="btn-primary auth-btn" style={{ marginTop: '1rem' }} disabled={isLoading}>
-                        {isLoading ? <div className="loading-spinner-small"></div> : <>Register Securely <ArrowRight size={18} /></>}
-                    </button>
-                </form>
-
-                <div className="auth-divider">
-                    <span>or</span>
-                </div>
-
-                <p className="register-prompt">
-                    Already have an account?{' '}
-                    <span 
-                        className="register-link" 
-                        onClick={() => navigate('/login')}
-                    >
-                        Sign in here
-                    </span>
-                </p>
             </div>
         </div>
     );
